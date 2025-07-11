@@ -2,10 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Interfaces\ProductoBasicoInterface;
+use App\Interfaces\GestorGrupoProductoInterface;
+use App\Interfaces\GestorProveedorProductoInterface;
 
-class Producto extends Model
+class Producto extends Model implements
+    ProductoBasicoInterface,
+    GestorGrupoProductoInterface,
+    GestorProveedorProductoInterface
 {
         protected $fillable = [
         'sku',
@@ -22,4 +27,24 @@ class Producto extends Model
         'codigo_barra',
         'sku_alternante',
     ];
+
+     public function registrarGrupoProducto(): void
+    {
+        if ($this->cod_grupo_producto && $this->nombre_grupo_producto) {
+            \Log::info("Registrando grupo de producto: {$this->cod_grupo_producto} - {$this->nombre_grupo_producto}");
+        }
+    }
+
+    public function registrarProveedorProducto(): void
+    {
+        if ($this->nombre_proveedor) {
+            \Log::info("Registrando proveedor: {$this->nombre_proveedor} para el producto {$this->sku}");
+        }
+    }
+
+    public function getSkuAlternante(string $cSkuBase): array
+    {
+        return ["", ""];
+    }
+
 }
