@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 /*use App\Models\Producto;*/
 use App\Services\ProductoService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class ProductoController extends Controller
 {
@@ -37,15 +38,16 @@ class ProductoController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'sku' => 'required|unique:productos',
-            'nombre' => 'required',
-            'precio_lista' => 'required|numeric',
-        ]);
 
-        $this->productoService->registrarProducto($request->all());
-
-        return redirect()->route('productos.index')->with('success', 'Producto registrado correctamente');
+        //Recibimos la peticion HTTP y Respondemos
+        try {
+            $this->productoService->registrarProducto($request->all());
+            return redirect()->route('productos.index')->with('success', 'Producto registrado correctamente');
+        } catch (ValidationException $e) {
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput();
+        }
     }
 
     /**
