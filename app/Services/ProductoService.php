@@ -5,62 +5,54 @@ namespace App\Services;
 use App\Models\Producto;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use App\Interfaces\ProductoBasicoInterface;
 
-class ProductoService
+
+class ProductoService implements ProductoBasicoInterface
 {
-//LOGICA DEL NEGOCIO
+    public function __construct(
+        private GrupoProductoService $grupoService,
+        private ProveedorProductoService $proveedorService,
+        private MRPProductoService $mrpService,
+        private PrecioProductoService $precioService
+    ) {}
 
     public function registrarProducto(array $data): Producto
     {
-        // Validación dentro del servicio
         $validator = Validator::make($data, [
             'sku' => 'required|unique:productos',
             'nombre' => 'required',
-            'precio_lista' => 'required|numeric',
         ]);
-        
-        // Nueva funcionalidad añadida para auditoria
-        //Log::info("Producto registrado: " . $producto->sku);
 
         if ($validator->fails()) {
             throw new ValidationException($validator);
         }
 
-        //LLamamos al Modelo
-        return Producto::create($data);
+        // Crear producto base
+        $producto = Producto::create($data);
+
+        // Delegar lógica específica a otros servicios
+        $this->grupoService->registrarGrupoProducto($producto, $data);
+        $this->proveedorService->registrarProveedorProducto($producto, $data);
+        $this->mrpService->registrarMRPProducto($producto, $data);
+        $this->precioService->registrarPrecioProducto($producto, $data);
+
+        return $producto;
     }
 
-    /*
-    public function registrarProducto(array $data): Producto
+    // Implementación de ProductoBasicoInterface
+    public function getSku(): string
     {
-        return Producto::create($data);
+        return $this->getSku();
     }
 
-    */
-
-     public function registrarGrupoProducto(string $codigo, string $nombre)
+    public function getNombre(): string
     {
-        // lógica para grupo de producto
+        return $this->getNombre();
     }
 
-    public function registrarProveedorProducto(string $proveedor)
+    public function getPrecioLista(): float
     {
-        // lógica para proveedor
+        return $this->getPrecioLista();
     }
-
-    public function registrarPrecioBaseProducto(float $precio)
-    {
-        // lógica para precios
-    }
-
-    public function registrarMinimoMaximoMRPAlmacen(int $min, int $max)
-    {
-        // lógica para MRP
-    }
-
-    public function getSkuAlternante(string $skuBase): array
-    {
-        return ['', '']; // alternantes genéricos
-    }
-
 }

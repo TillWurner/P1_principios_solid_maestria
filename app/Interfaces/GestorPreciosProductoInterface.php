@@ -1,5 +1,8 @@
 <?php
 namespace App\Interfaces;
+
+use App\Models\Producto;
+
 interface GestorPreciosProductoInterface {
-    public function registrarPrecioBaseProducto(): void;
+    public function registrarPrecioProducto(Producto $producto, array $data): void;
 }
